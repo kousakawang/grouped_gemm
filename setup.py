@@ -28,7 +28,7 @@ cwd = Path(os.path.dirname(os.path.abspath(__file__)))
 nvcc_flags = [
     "-std=c++17",  # NOTE: CUTLASS requires c++17
     "-DENABLE_BF16", # Enable BF16 for cuda_version >= 11
-    # "-DENABLE_FP8",  # Enable FP8 for cuda_version >= 11.8
+    "-DENABLE_FP8",  # Enable FP8 for cuda_version >= 11.8
 ]
 
 if device_capability:
