@@ -462,6 +462,11 @@ std::tuple<Tensor, Tensor, std::vector<Tensor>> moe_permute_topK_op(
     // initialize the workspace on the first run
     if (workspace.empty()) {
         auto options = torch::TensorOptions().dtype(torch::kInt32).device(torch::kCUDA).requires_grad(false);
+        
+        auto show_ws_switch = getenv("show_permute_ws_switch");
+        if (show_ws_switch) {
+            printf(">>>>>>initialize permute workspace  show permute workspace info %ld %ld", num_out_tokens, max_expanded_token_num);
+        }
 
         Tensor sorted_indices = torch::empty(max_expanded_token_num, options);
         Tensor row_id = torch::range(0, max_expanded_token_num - 1, 1, options);
