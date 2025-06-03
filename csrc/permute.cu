@@ -498,7 +498,7 @@ std::tuple<Tensor, Tensor, std::vector<Tensor>> moe_permute_topK_op(
 
     cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes,
                                     indices_ptr, sorted_indices_ptr,
-                                    row_id_ptr, sorted_row_id_ptr, num_tokens * num_topK, stream);
+                                    row_id_ptr, sorted_row_id_ptr, num_tokens * num_topK);
 
     // activations type
     const at::ScalarType _st = input.scalar_type();
