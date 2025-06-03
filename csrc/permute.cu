@@ -467,7 +467,7 @@ std::tuple<Tensor, Tensor, std::vector<Tensor>> moe_permute_topK_op(
         if (show_ws_switch) {
             printf(">>>>>>initialize permute workspace  show permute workspace info %ld %ld", num_out_tokens, max_expanded_token_num);
         }
-
+        
         Tensor sorted_indices = torch::empty(max_expanded_token_num, options);
         Tensor row_id = torch::range(0, max_expanded_token_num - 1, 1, options);
         Tensor sorted_row_id =
@@ -487,6 +487,7 @@ std::tuple<Tensor, Tensor, std::vector<Tensor>> moe_permute_topK_op(
         workspace.push_back(temp_storage);
     }
 
+    auto stream = at::cuda::getCurrentCUDAStream().stream();
     int *indices_ptr = get_ptr<int>(indices);
     int *sorted_indices_ptr = get_ptr<int>(workspace[0]);
     int *row_id_ptr = get_ptr<int>(workspace[1]);
@@ -497,7 +498,7 @@ std::tuple<Tensor, Tensor, std::vector<Tensor>> moe_permute_topK_op(
 
     cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes,
                                     indices_ptr, sorted_indices_ptr,
-                                    row_id_ptr, sorted_row_id_ptr, num_tokens * num_topK);
+                                    row_id_ptr, sorted_row_id_ptr, num_tokens * num_topK, stream);
 
     // activations type
     const at::ScalarType _st = input.scalar_type();
@@ -510,7 +511,6 @@ std::tuple<Tensor, Tensor, std::vector<Tensor>> moe_permute_topK_op(
         torch::empty({num_tokens * num_topK}, torch::dtype(torch::kInt32).device(torch::kCUDA).requires_grad(false));
 
     int *row_id_map_ptr = get_ptr<int>(row_id_map);
-    auto stream = at::cuda::getCurrentCUDAStream().stream();
 
     switch (_st)
     {
