@@ -487,7 +487,8 @@ std::tuple<Tensor, Tensor, std::vector<Tensor>> moe_permute_topK_op(
         workspace.push_back(temp_storage);
     }
 
-    auto stream = at::cuda::getCurrentCUDAStream().stream();
+    cudaStream_t stream = at::cuda::getCurrentCUDAStream().stream();
+
     int *indices_ptr = get_ptr<int>(indices);
     int *sorted_indices_ptr = get_ptr<int>(workspace[0]);
     int *row_id_ptr = get_ptr<int>(workspace[1]);
@@ -498,7 +499,7 @@ std::tuple<Tensor, Tensor, std::vector<Tensor>> moe_permute_topK_op(
 
     cub::DeviceRadixSort::SortPairs(d_temp_storage, temp_storage_bytes,
                                     indices_ptr, sorted_indices_ptr,
-                                    row_id_ptr, sorted_row_id_ptr, num_tokens * num_topK);
+                                    row_id_ptr, sorted_row_id_ptr, num_tokens * num_topK, 0, sizeof(int) * 4, stream);
 
     // activations type
     const at::ScalarType _st = input.scalar_type();
